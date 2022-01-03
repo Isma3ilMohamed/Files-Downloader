@@ -7,4 +7,6 @@ class FileResponse : ArrayList<FileResponse.FileResponseItem>(){
         var type: String,
         var url: String
     )
+
+
 }
