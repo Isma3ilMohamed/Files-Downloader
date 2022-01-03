@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="16dp"
+    android:layout_margin="8dp"
     app:cardCornerRadius="8dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -13,8 +14,8 @@
 
         <ImageView
             android:id="@+id/iv_file_type"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp"
@@ -49,15 +50,16 @@
         <ProgressBar
             android:id="@+id/progressBar"
             style="?android:progressBarStyleHorizontal"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:layout_marginEnd="8dp"
             android:layoutDirection="rtl"
             android:progress="50"
             android:progressDrawable="@drawable/circle"
             app:layout_constraintBottom_toBottomOf="@+id/iv_file_type"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="@+id/iv_file_type"
-            app:layout_constraintVertical_bias="0.0" />
+            />
 
         <TextView
             android:id="@+id/tv_precentage"

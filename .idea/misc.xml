@@ -4,7 +4,10 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="..\:/playground/NagwaAssignment/app/src/main/res/drawable/circle.xml" value="0.22552083333333334" />
+        <entry key="..\:/playground/NagwaAssignment/app/src/main/res/drawable/ic_download.xml" value="0.22552083333333334" />
+        <entry key="..\:/playground/NagwaAssignment/app/src/main/res/layout/activity_main.xml" value="0.209375" />
         <entry key="..\:/playground/NagwaAssignment/app/src/main/res/layout/item_file.xml" value="0.25" />
+        <entry key="..\:/playground/NagwaAssignment/app/src/main/res/layout/toolbar.xml" value="0.25" />
         <entry key="..\:/playground/NagwaAssignment/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.22552083333333334" />
         <entry key="..\:/playground/NagwaAssignment/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" value="0.22552083333333334" />
       </map>
