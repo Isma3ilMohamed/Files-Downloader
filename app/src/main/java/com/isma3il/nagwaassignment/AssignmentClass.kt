@@ -3,6 +3,7 @@ package com.isma3il.nagwaassignment
 import android.app.Application
 import com.isma3il.nagwaassignment.di.ApplicationComponent
 import com.isma3il.nagwaassignment.di.DaggerApplicationComponent
+import timber.log.Timber
 
 class AssignmentClass:Application() {
 
@@ -13,5 +14,8 @@ class AssignmentClass:Application() {
     override fun onCreate() {
         super.onCreate()
 
+        if(BuildConfig.DEBUG){
+            Timber.plant(Timber.DebugTree())
+        }
     }
 }

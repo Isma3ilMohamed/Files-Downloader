@@ -5,5 +5,6 @@ enum class NagwaFileStatus {
     WAITING,
     DOWNLOADING,
     DOWNLOADED,
+    RETRY,
     ERROR
 }
