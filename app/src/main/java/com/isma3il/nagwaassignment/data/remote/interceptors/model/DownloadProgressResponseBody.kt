@@ -8,13 +8,14 @@ import okio.*
 Custom response body for downloading file
  */
 class DownloadProgressResponseBody(
-    private val downloadIdentifier: String,
     private val downloadPosition: Int,
     private val responseBody: ResponseBody?,
     private val progressListener: DownloadProgressListener?
 ) :
     ResponseBody() {
+
     private var bufferedSource: BufferedSource? = null
+
     override fun contentType(): MediaType? {
         return responseBody?.contentType()
     }
@@ -41,8 +42,7 @@ class DownloadProgressResponseBody(
                     totalBytesRead += bytesRead
                 }
                 responseBody?.let {
-                    progressListener?.update(
-                        downloadIdentifier,
+                    progressListener?.onProgressUpdate(
                         downloadPosition,
                         totalBytesRead,
                         it.contentLength(),
@@ -55,16 +55,3 @@ class DownloadProgressResponseBody(
     }
 }
 
-/**
-DownloadProgressListener for keep track on downloading progress
- */
-
-interface DownloadProgressListener {
-    fun update(
-        downloadIdentifier: String?,
-        downloadPosition: Int,
-        bytesRead: Long,
-        contentLength: Long,
-        done: Boolean
-    )
-}

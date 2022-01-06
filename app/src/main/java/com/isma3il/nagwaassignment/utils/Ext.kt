@@ -12,25 +12,10 @@ fun AssetManager.readAssetsFile(fileName: String): String =
     open(fileName).bufferedReader().use { it.readText() }
 
 
-// Gson converters
-inline fun <reified R> String.fromJson() : R {
-    return Gson().fromJson(this, R::class.java)
-}
-
-inline fun <reified R> R.toJson() : String {
-    return Gson().toJson(this, R::class.java)
-}
 
 //view extensions
 fun CardView.setColor(res: Int) {
     this.setBackgroundResource(res)
-}
-
-
-fun androidx.constraintlayout.widget.Group.setAllOnClickListener(listener: View.OnClickListener?) {
-    referencedIds.forEach { id ->
-        rootView.findViewById<View>(id).setOnClickListener(listener)
-    }
 }
 
 
@@ -60,9 +45,7 @@ fun getMimeType(file: File): String {
 }
 
 fun getExtension(uri: String?): String? {
-    if (uri ==
-        null
-    ) {
+    if (uri == null) {
         return null
     }
 

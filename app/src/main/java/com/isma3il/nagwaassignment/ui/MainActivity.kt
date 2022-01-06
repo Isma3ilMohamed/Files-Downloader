@@ -5,10 +5,12 @@ import android.Manifest.permission.READ_EXTERNAL_STORAGE
 import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Build.VERSION.SDK_INT
 import android.os.Bundle
 import android.os.Environment
+import android.provider.Settings
 import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -16,14 +18,12 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import com.google.android.material.snackbar.Snackbar
 import com.isma3il.nagwaassignment.AssignmentClass
 import com.isma3il.nagwaassignment.BuildConfig
 import com.isma3il.nagwaassignment.databinding.ActivityMainBinding
 import com.isma3il.nagwaassignment.domain.model.NagwaFile
 import com.isma3il.nagwaassignment.ui.adapter.NagwaAdapter
 import com.isma3il.nagwaassignment.utils.getMimeType
-import com.isma3il.nagwaassignment.utils.setAllOnClickListener
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
@@ -34,15 +34,22 @@ import java.io.File
 import javax.inject.Inject
 
 import android.widget.Toast
-import com.karumi.dexter.listener.PermissionDeniedResponse
-import com.karumi.dexter.listener.PermissionGrantedResponse
-import com.karumi.dexter.listener.single.PermissionListener
+import androidx.annotation.RequiresApi
+import androidx.recyclerview.widget.RecyclerView
+import com.isma3il.nagwaassignment.domain.model.NagwaFileStatus
+import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.disposables.CompositeDisposable
+import java.util.concurrent.TimeUnit
 
 
 class MainActivity : AppCompatActivity() {
 
     //binding
     private lateinit var binding: ActivityMainBinding
+
+    //disposable
+    @Inject
+     lateinit var compositeDisposable: CompositeDisposable
 
     //View Model
     @Inject
@@ -52,27 +59,16 @@ class MainActivity : AppCompatActivity() {
     //adapter
     private val nagwaAdapter by lazy {
         NagwaAdapter(object : NagwaAdapter.NagwaCallback {
-            override fun onFileClickListener(file: NagwaFile) {
-                if (file.savedFile == null) {
-                    if (checkPermission()){
-                        viewModel.downloadFile(file)
-                    }else{
-                        requestPermission {
-                            viewModel.downloadFile(file)
-                        }
-                    }
-
-                } else {
-                    openFile(file.savedFile)
-                }
+            override fun retry(file: NagwaFile) {
+                retryDownloading(file)
             }
 
-            override fun onSelectFile(isSelected: Boolean, file: NagwaFile, position: Int) {
-
+            override fun openFile(file: File) {
+                this@MainActivity.openFile(file)
             }
 
-            override fun retry(file: NagwaFile, position: Int) {
-
+            override fun executeMsg(msg: String) {
+                errorMsg(msg)
             }
 
         })
@@ -105,13 +101,62 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    private fun setupController() {
+    private fun setupController()=with(binding) {
         showLoading()
-        binding.rvFiles.adapter = nagwaAdapter
-
+        rvFiles.adapter = nagwaAdapter
+        fabDownload.setOnClickListener {
+            if (checkPermission()){
+                startDownloadingList()
+            }else{
+                requestPermission { startDownloadingList() }
+            }
+        }
+        rvFiles.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                if (dy>0){
+                    fabDownload.hide()
+                }else{
+                    fabDownload.show()
+                }
+            }
+        })
 
     }
 
+    private fun startDownloadingList(){
+        if (nagwaAdapter.getSelectedData().isNotEmpty()){
+            //1- remove selection ui & shift items to waiting state
+            //2- start downloading
+            val downloadedList= nagwaAdapter.getSelectedData()
+            downloadedList.map {
+                it.isSelected=false
+                it.status=NagwaFileStatus.WAITING
+            }
+            downloadedList.forEach {
+                nagwaAdapter.updateItem(it)
+            }
+
+            viewModel.downloadFiles(downloadedList)
+
+        }else{
+            errorMsg("you should select one file at least")
+        }
+    }
+
+    private fun retryDownloading(nagwaFile: NagwaFile){
+        nagwaAdapter.updateItem(
+            nagwaFile.also {
+                it.status=NagwaFileStatus.WAITING
+            }
+        )
+        //mock waiting
+        compositeDisposable.add(
+            Observable.timer(2,TimeUnit.SECONDS)
+                .subscribe {
+                    viewModel.downloadFile(nagwaFile)
+                }
+        )
+    }
 
     private fun setupObservables() {
         //fetch files
@@ -124,11 +169,10 @@ class MainActivity : AppCompatActivity() {
         //observe errors
         viewModel.errorMsg.observe(this, Observer {
             Timber.wtf(it)
-            Snackbar.make(binding.root, it, Snackbar.LENGTH_LONG)
-                .show()
+            errorMsg(it)
         })
 
-        //update progress status
+        //onProgressUpdate currentProgress status
         viewModel.subscribeOnDownloadingProgress()
         viewModel.progressLiveData.observe(this, Observer {
             nagwaAdapter.updateItemPercentage(it.downloadProgress, it.filePosition)
@@ -138,6 +182,11 @@ class MainActivity : AppCompatActivity() {
         //downloaded files
         viewModel.downloadFileLiveData.observe(this, Observer {
             nagwaAdapter.updateItem(it)
+        })
+
+        //observe executing
+        viewModel.executeLiveData.observe(this, Observer {
+            nagwaAdapter.changeExecutingState(it)
         })
     }
 
@@ -167,28 +216,30 @@ class MainActivity : AppCompatActivity() {
 
         if (SDK_INT >= Build.VERSION_CODES.R) {
             Dexter.withContext(this)
-                .withPermission(Manifest.permission.MANAGE_EXTERNAL_STORAGE)
-                .withListener(object : PermissionListener {
-                    override fun onPermissionGranted(p0: PermissionGrantedResponse?) {
-                        if (Environment.isExternalStorageManager()) {
+                .withPermissions(
+                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                    Manifest.permission.MANAGE_EXTERNAL_STORAGE
+                )
+                .withListener(object : MultiplePermissionsListener {
+                    override fun onPermissionsChecked(report: MultiplePermissionsReport?) {
+
+                        if (report?.areAllPermissionsGranted() == true) {
                             action.invoke()
-                        }else{
-                            permissionDeniedMessage()
+                        } else {
+                            accessAllFile()
                         }
-
-                    }
-
-                    override fun onPermissionDenied(p0: PermissionDeniedResponse?) {
-                        permissionDeniedMessage()
                     }
 
                     override fun onPermissionRationaleShouldBeShown(
-                        request: PermissionRequest?,
+                        permissions: MutableList<PermissionRequest>?,
                         token: PermissionToken?
                     ) {
                         token?.continuePermissionRequest()
                     }
                 })
+                .onSameThread()
+                .check()
         } else {
             Dexter.withContext(this)
                 .withPermissions(
@@ -201,7 +252,7 @@ class MainActivity : AppCompatActivity() {
                         if (report?.areAllPermissionsGranted() == true) {
                             action.invoke()
                         } else {
-                            permissionDeniedMessage()
+                            errorMsg("Allow permission for storage access!")
                         }
                     }
 
@@ -217,12 +268,21 @@ class MainActivity : AppCompatActivity() {
         }
 
     }
-    private fun permissionDeniedMessage() {
-        Toast.makeText(
-            this@MainActivity,
-            "Allow permission for storage access!",
-            Toast.LENGTH_SHORT
-        ).show()
+    @RequiresApi(Build.VERSION_CODES.R)
+    private fun accessAllFile(){
+        val intent = Intent()
+        intent.action = Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION
+        val uri: Uri = Uri.fromParts("package", this.packageName, null)
+        intent.data = uri
+        startActivity(intent)
+    }
+    private fun errorMsg(msg:String) {
+        Toast.makeText(this,msg,Toast.LENGTH_LONG).show()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        compositeDisposable.dispose()
     }
 
 }

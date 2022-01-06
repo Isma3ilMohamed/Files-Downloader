@@ -57,8 +57,6 @@ class AppFileRepository @Inject constructor(
         val position=file?.filePosition?:0
 
 
-
-
        return api.downloadFile(url,identifier,position).flatMap { response ->
            try {
 
@@ -92,7 +90,7 @@ class AppFileRepository @Inject constructor(
             }else{
                 var retry=file?.retry?:0
 
-                if (retry>0){
+                if (retry>1){
                     //give user a chance to try again
                     return@flatMap Observable.just(AppResult.Success(file.also {
                         it?.retry = --retry

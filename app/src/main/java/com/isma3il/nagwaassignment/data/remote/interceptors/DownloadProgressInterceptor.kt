@@ -37,15 +37,13 @@ class DownloadProgressInterceptor @Inject  constructor() : Interceptor {
 
 
         if (filePositionIsSet && fileIdentifierIsSet) {
-            //Here we could access file download progress
+            //Here we could access file download currentProgress
             builder.body(
                 DownloadProgressResponseBody(
-                    downloadIdentifier?:"",
                     downloadPosition,
                     originalResponse.body,
                     object : DownloadProgressListener {
-                        override fun update(
-                            downloadIdentifier: String?,
+                        override fun onProgressUpdate(
                             downloadPosition:Int,
                             bytesRead: Long,
                             contentLength: Long,
@@ -53,12 +51,17 @@ class DownloadProgressInterceptor @Inject  constructor() : Interceptor {
                         ) {
                             // we post an event into the Bus !
                             if (!done){
-                                EventBus.publish(ProgressEvent(downloadIdentifier?:"",downloadPosition, contentLength, bytesRead))
+                                EventBus.publish(ProgressEvent(
+                                    downloadPosition,
+                                    contentLength,
+                                    bytesRead
+                                ))
                             }
                         }
                     })
             )
-        } else { // do nothing if it's not a file with an identifier :)
+        } else {
+
             builder.body(originalResponse.body)
         }
         return builder.build()

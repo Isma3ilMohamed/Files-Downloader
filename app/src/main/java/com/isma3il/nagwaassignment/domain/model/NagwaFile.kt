@@ -9,6 +9,7 @@ data class NagwaFile(
     val url: String,
 
     //file state
+    var isSelected:Boolean=false,
     var status: NagwaFileStatus=NagwaFileStatus.IDLE,
     var progressPercentage:Int=0,
 
@@ -17,6 +18,6 @@ data class NagwaFile(
     var filePosition:Int=0,
 
     //error state
-    var retry:Int = 3,
+    var retry:Int = 4,
     var error:String=""
 )
