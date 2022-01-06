@@ -15,8 +15,8 @@ import com.isma3il.nagwaassignment.utils.setColor
 import com.isma3il.nagwaassignment.utils.showB
 import java.io.File
 
-class NagwaAdapter(private val callback: NagwaCallback) :
-    RecyclerView.Adapter<NagwaAdapter.NagwaHolder>() {
+class FilesAdapter(private val callback: FilesCallback) :
+    RecyclerView.Adapter<FilesAdapter.NagwaHolder>() {
 
     private val dataset: MutableList<NagwaFile> = mutableListOf()
     private var mIsExecuting = false
@@ -213,10 +213,5 @@ class NagwaAdapter(private val callback: NagwaCallback) :
 
     }
 
-    interface NagwaCallback {
-        fun retry(file: NagwaFile)
-        fun openFile(file:File)
-        fun executeMsg(msg: String)
-    }
 
 }

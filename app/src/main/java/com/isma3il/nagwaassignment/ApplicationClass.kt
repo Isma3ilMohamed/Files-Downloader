@@ -5,7 +5,7 @@ import com.isma3il.nagwaassignment.di.ApplicationComponent
 import com.isma3il.nagwaassignment.di.DaggerApplicationComponent
 import timber.log.Timber
 
-class AssignmentClass:Application() {
+class ApplicationClass:Application() {
 
     val applicationComponent: ApplicationComponent by lazy {
         DaggerApplicationComponent.factory().create(applicationContext)

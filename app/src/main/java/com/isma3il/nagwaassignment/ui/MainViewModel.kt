@@ -18,6 +18,7 @@ import io.reactivex.rxjava3.kotlin.addTo
 import io.reactivex.rxjava3.kotlin.subscribeBy
 import io.reactivex.rxjava3.schedulers.Schedulers
 import timber.log.Timber
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 
@@ -161,6 +162,17 @@ class MainViewModel @Inject constructor(
                     Timber.i("Current currentProgress => " + it.localizedMessage)
                 }
             ).addTo(compositeDisposable)
+    }
+
+
+    fun retry(nagwaFile: NagwaFile){
+        //mock waiting
+        compositeDisposable.add(
+            Observable.timer(2, TimeUnit.SECONDS)
+                .subscribe {
+                    downloadFile(nagwaFile)
+                }
+        )
     }
 
     override fun onCleared() {

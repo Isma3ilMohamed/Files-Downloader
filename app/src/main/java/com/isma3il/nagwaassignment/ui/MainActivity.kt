@@ -18,11 +18,11 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import com.isma3il.nagwaassignment.AssignmentClass
+import com.isma3il.nagwaassignment.ApplicationClass
 import com.isma3il.nagwaassignment.BuildConfig
 import com.isma3il.nagwaassignment.databinding.ActivityMainBinding
 import com.isma3il.nagwaassignment.domain.model.NagwaFile
-import com.isma3il.nagwaassignment.ui.adapter.NagwaAdapter
+import com.isma3il.nagwaassignment.ui.adapter.FilesAdapter
 import com.isma3il.nagwaassignment.utils.getMimeType
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.MultiplePermissionsReport
@@ -37,6 +37,9 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView
 import com.isma3il.nagwaassignment.domain.model.NagwaFileStatus
+import com.isma3il.nagwaassignment.ui.adapter.FilesCallback
+import com.isma3il.nagwaassignment.utils.Utils.accessAllFile
+import com.isma3il.nagwaassignment.utils.Utils.openFile
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import java.util.concurrent.TimeUnit
@@ -47,10 +50,6 @@ class MainActivity : AppCompatActivity() {
     //binding
     private lateinit var binding: ActivityMainBinding
 
-    //disposable
-    @Inject
-     lateinit var compositeDisposable: CompositeDisposable
-
     //View Model
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
@@ -58,7 +57,7 @@ class MainActivity : AppCompatActivity() {
 
     //adapter
     private val nagwaAdapter by lazy {
-        NagwaAdapter(object : NagwaAdapter.NagwaCallback {
+        FilesAdapter(object : FilesCallback {
             override fun retry(file: NagwaFile) {
                 retryDownloading(file)
             }
@@ -74,23 +73,10 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    private fun openFile(file: File?) {
-        val fileUri = file?.let {
-            FileProvider.getUriForFile(
-                this, BuildConfig.APPLICATION_ID + ".provider",
-                it
-            )
-        }
-        val intent = Intent(Intent.ACTION_VIEW);
-        intent.setDataAndType(fileUri, file?.let { getMimeType(it) })
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        startActivity(intent)
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         //inject component to activity
-        (application as AssignmentClass).applicationComponent.inject(this)
+        (application as ApplicationClass).applicationComponent.inject(this)
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -120,7 +106,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         })
-
     }
 
     private fun startDownloadingList(){
@@ -144,18 +129,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun retryDownloading(nagwaFile: NagwaFile){
+        //change state to waiting
         nagwaAdapter.updateItem(
             nagwaFile.also {
                 it.status=NagwaFileStatus.WAITING
             }
         )
-        //mock waiting
-        compositeDisposable.add(
-            Observable.timer(2,TimeUnit.SECONDS)
-                .subscribe {
-                    viewModel.downloadFile(nagwaFile)
-                }
-        )
+        viewModel.retry(nagwaFile)
     }
 
     private fun setupObservables() {
@@ -268,21 +248,10 @@ class MainActivity : AppCompatActivity() {
         }
 
     }
-    @RequiresApi(Build.VERSION_CODES.R)
-    private fun accessAllFile(){
-        val intent = Intent()
-        intent.action = Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION
-        val uri: Uri = Uri.fromParts("package", this.packageName, null)
-        intent.data = uri
-        startActivity(intent)
-    }
+
     private fun errorMsg(msg:String) {
         Toast.makeText(this,msg,Toast.LENGTH_LONG).show()
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        compositeDisposable.dispose()
-    }
 
 }

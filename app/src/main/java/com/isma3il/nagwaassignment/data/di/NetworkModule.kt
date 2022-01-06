@@ -3,10 +3,10 @@ package com.isma3il.nagwaassignment.data.di
 import android.content.Context
 import android.content.res.AssetManager
 import com.google.gson.Gson
+import com.isma3il.nagwaassignment.BuildConfig
 import com.isma3il.nagwaassignment.data.remote.Api
 import com.isma3il.nagwaassignment.data.remote.interceptors.DownloadProgressInterceptor
 import com.isma3il.nagwaassignment.data.remote.interceptors.LoggingInterceptor
-import com.isma3il.nagwaassignment.utils.Constants
 
 import dagger.Module
 import dagger.Provides
@@ -44,7 +44,7 @@ class NetworkModule {
     @Provides
     fun createApi(okHttpClient: OkHttpClient): Api {
         return Retrofit.Builder()
-            .baseUrl(Constants.FAKE_BASE_URL)
+            .baseUrl(BuildConfig.FAKE_BASE_URL)
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .addCallAdapterFactory(RxJava3CallAdapterFactory.create())

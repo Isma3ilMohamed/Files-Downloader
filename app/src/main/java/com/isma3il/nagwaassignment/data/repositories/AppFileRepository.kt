@@ -2,23 +2,19 @@ package com.isma3il.nagwaassignment.data.repositories
 
 import android.content.res.AssetManager
 import android.os.Environment
-import androidx.lifecycle.Observer
 import com.google.gson.Gson
 import com.isma3il.nagwaassignment.base.AppResult
 import com.isma3il.nagwaassignment.data.model.FileResponse
-import com.isma3il.nagwaassignment.data.model.NagwaFileMapper
+import com.isma3il.nagwaassignment.data.model.FileMapper
 import com.isma3il.nagwaassignment.data.remote.Api
-import com.isma3il.nagwaassignment.data.remote.interceptors.model.ProgressEvent
 import com.isma3il.nagwaassignment.domain.model.NagwaFile
 import com.isma3il.nagwaassignment.domain.model.NagwaFileStatus
 import com.isma3il.nagwaassignment.domain.repositories.FileRepository
-import com.isma3il.nagwaassignment.utils.EventBus
 import com.isma3il.nagwaassignment.utils.readAssetsFile
 import io.reactivex.rxjava3.core.Observable
 import okio.BufferedSink
 import okio.buffer
 import okio.sink
-import org.reactivestreams.Subscriber
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -28,7 +24,7 @@ import javax.inject.Singleton
 class AppFileRepository @Inject constructor(
     private val assetManager: AssetManager,
     private val gson: Gson,
-    private val mapper: NagwaFileMapper,
+    private val mapper: FileMapper,
     private val api: Api
 ) :
     FileRepository {
