@@ -33,7 +33,7 @@ class DownloadProgressInterceptor @Inject  constructor() : Interceptor {
         val fileIdentifierIsSet = downloadIdentifier != null &&
                 downloadIdentifier.isNotEmpty()
 
-        val filePositionIsSet= downloadPosition!=0
+        val filePositionIsSet= downloadPosition!=-1
 
 
         if (filePositionIsSet && fileIdentifierIsSet) {
