@@ -1,11 +1,5 @@
-# Nagwa-Assignment
-:boom: ***Nagwa Assignment*** is an assignment for android developer positon by [Nagwa.com](https://www.nagwa.com/).
 
-<p align="center">
-  <a href="https://www.nagwa.com/"><img alt="License" src="https://contents.nagwa.com/content/images/logo-shape.svg" width="350"/></a>
-</p>
-
-## About
+# About
 
 **This task helps to download one or multiple files with downloading progress for each file depending on the following:**
 
