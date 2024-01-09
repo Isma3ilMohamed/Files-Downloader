@@ -76,7 +76,7 @@ dependencies {
     implementation 'io.reactivex.rxjava3:rxkotlin:3.0.1'
 
     //Gson
-    implementation 'com.google.code.gson:gson:2.9.0'
+    implementation 'com.google.code.gson:gson:2.10.1'
 
     //Permission
     implementation 'com.karumi:dexter:6.2.3'
